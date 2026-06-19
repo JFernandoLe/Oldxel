@@ -5,6 +5,10 @@ from pathlib import Path
 from python_calamine import CalamineWorkbook
 from openpyxl import Workbook
 from tqdm import tqdm
+from rules.reglas import procesar_fila
+from config.config_loader import cargar_configuracion
+config = cargar_configuracion()
+
 
 # ==================================================
 # CONFIGURACION
@@ -16,7 +20,7 @@ CARPETA_SALIDA = r"./Convertidos"
 FORMATO_SALIDA = "xlsx"  # "xlsx" o "csv"
 
 LIMITE_XLSX = 1_048_576
-MAX_DATOS_XLSX = 1000  # encabezado ocupa una fila
+MAX_DATOS_XLSX = LIMITE_XLSX - 1  # encabezado ocupa una fila
 
 # ==================================================
 # UTILIDADES
@@ -92,6 +96,14 @@ def convertir_a_xlsx(archivo):
             inicio = 0
 
         for fila in rows[inicio:]:
+            
+            fila = procesar_fila(
+                fila,
+                config
+            )
+
+            if fila is None:
+                continue
 
             if filas_actuales >= MAX_DATOS_XLSX:
 
@@ -161,6 +173,14 @@ def convertir_a_csv(archivo):
                 inicio = 0
 
             for fila in rows[inicio:]:
+                fila = procesar_fila(
+                    fila,
+                    config
+                )
+
+                if fila is None:
+                    continue
+
                 writer.writerow(fila)
 
 
@@ -171,6 +191,7 @@ def convertir_a_csv(archivo):
 def procesar_archivo(archivo):
 
     print(f"\nProcesando: {archivo.name}")
+    
 
     if FORMATO_SALIDA.lower() == "xlsx":
         convertir_a_xlsx(archivo)

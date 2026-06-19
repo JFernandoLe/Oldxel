@@ -1,0 +1,6 @@
+{
+    "formato_salida": "csv",
+    "eliminar_filas_vacias": true,
+    "filtros": [],
+    "reglas": []
+}
