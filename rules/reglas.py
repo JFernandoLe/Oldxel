@@ -40,14 +40,18 @@ def cumple_filtro(
 def procesar_fila(
     fila,
     config,
-    mapa_columnas
+    mapa_columnas,
+    estadisticas
 ):
+
+    estadisticas["filas_leidas"] += 1
 
     # Eliminar filas vacías
     if (
-        config["eliminar_filas_vacias"]
-        and fila_vacia(fila)
+    config["eliminar_filas_vacias"]
+    and fila_vacia(fila)
     ):
+        estadisticas["filas_eliminadas"] += 1
         return None
 
     # Filtros
@@ -58,13 +62,15 @@ def procesar_fila(
             filtro,
             mapa_columnas
         ):
+            estadisticas["filas_eliminadas"] += 1
             return None
 
     # Reglas de negocio
     fila = aplicar_reglas(
         fila,
         config["reglas"],
-        mapa_columnas
+        mapa_columnas,
+        estadisticas
     )
 
     return fila
@@ -72,7 +78,8 @@ def procesar_fila(
 def aplicar_reglas(
     fila,
     reglas,
-    mapa_columnas
+    mapa_columnas,
+    estadisticas
 ):
 
     for regla in reglas:
@@ -109,6 +116,7 @@ def aplicar_reglas(
                     float(fila[idx_destino])
                     * regla["factor"]
                 )
+                estadisticas["filas_modificadas"] += 1
 
             except:
                 pass

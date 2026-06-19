@@ -17,7 +17,7 @@ config = cargar_configuracion()
 CARPETA_ENTRADA = r"./ExcelViejos"
 CARPETA_SALIDA = r"./Convertidos"
 
-FORMATO_SALIDA = "csv"  # "xlsx" o "csv"
+FORMATO_SALIDA = "xlsx"  # "xlsx" o "csv"
 
 LIMITE_XLSX = 1_048_576
 MAX_DATOS_XLSX = LIMITE_XLSX - 1  # encabezado ocupa una fila
@@ -54,6 +54,13 @@ def crear_xlsx(nombre_base, parte, encabezado):
 # ==================================================
 # XLSX
 # ==================================================
+
+estadisticas = {
+    "filas_leidas": 0,
+    "filas_eliminadas": 0,
+    "filas_modificadas": 0,
+    "filas_exportadas": 0
+}
 
 def convertir_a_xlsx(archivo):
 
@@ -105,7 +112,8 @@ def convertir_a_xlsx(archivo):
             fila = procesar_fila(
                 fila,
                 config,
-                mapa_columnas
+                mapa_columnas,
+                estadisticas
             )
 
             if fila is None:
@@ -125,14 +133,27 @@ def convertir_a_xlsx(archivo):
                 )
 
             ws_out.append(fila)
+            estadisticas["filas_exportadas"] += 1
             filas_actuales += 1
 
     wb_out.save(ruta_salida)
+    print("\nResumen:")
+    print(f"Filas leídas:      {estadisticas['filas_leidas']:,}")
+    print(f"Filas eliminadas:  {estadisticas['filas_eliminadas']:,}")
+    print(f"Filas modificadas: {estadisticas['filas_modificadas']:,}")
+    print(f"Filas exportadas:  {estadisticas['filas_exportadas']:,}")
 
 
 # ==================================================
 # CSV
 # ==================================================
+
+estadisticas = {
+    "filas_leidas": 0,
+    "filas_eliminadas": 0,
+    "filas_modificadas": 0,
+    "filas_exportadas": 0
+}
 
 def convertir_a_csv(archivo):
 
@@ -187,13 +208,20 @@ def convertir_a_csv(archivo):
                 fila = procesar_fila(
                     fila,
                     config,
-                    mapa_columnas
+                    mapa_columnas,
+                    estadisticas
                 )
 
                 if fila is None:
                     continue
 
                 writer.writerow(fila)
+                estadisticas["filas_exportadas"] += 1
+    print("\nResumen:")
+    print(f"Filas leídas:      {estadisticas['filas_leidas']:,}")
+    print(f"Filas eliminadas:  {estadisticas['filas_eliminadas']:,}")
+    print(f"Filas modificadas: {estadisticas['filas_modificadas']:,}")
+    print(f"Filas exportadas:  {estadisticas['filas_exportadas']:,}")
 
 
 # ==================================================

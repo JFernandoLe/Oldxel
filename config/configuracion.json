@@ -1,5 +1,5 @@
 {
-    "formato_salida": "csv",
+    "formato_salida": "xlsx",
 
     "eliminar_filas_vacias": true,
 
@@ -19,7 +19,7 @@
     "reglas": [
         {
             "tipo": "multiplicar",
-            "columna": "Prima",
+            "columna": "Comisión",
             "factor": -1,
 
             "condicion": {
@@ -29,7 +29,7 @@
         },
         {
             "tipo": "multiplicar",
-            "columna": "Prima",
+            "columna": "Comisión",
             "factor": -1,
 
             "condicion": {
