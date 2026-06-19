@@ -1,6 +1,41 @@
 {
     "formato_salida": "csv",
+
     "eliminar_filas_vacias": true,
-    "filtros": [],
-    "reglas": []
+
+    "filtros": [
+        {
+            "columna": "Concepto",
+            "operador": "contiene",
+            "valor": "CANCELADO"
+        },
+        {
+            "columna": "Concepto",
+            "operador": "contiene",
+            "valor": "PENDIENTE"
+        }
+    ],
+
+    "reglas": [
+        {
+            "tipo": "multiplicar",
+            "columna": "Prima",
+            "factor": -1,
+
+            "condicion": {
+                "columna": "Concepto",
+                "valor": "DESPAGO COMISION RENOVACION"
+            }
+        },
+        {
+            "tipo": "multiplicar",
+            "columna": "Prima",
+            "factor": -1,
+
+            "condicion": {
+                "columna": "Concepto",
+                "valor": "DESPAGO COMISION POLIZA NUEVA"
+            }
+        }
+    ]
 }

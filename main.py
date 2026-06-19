@@ -17,7 +17,7 @@ config = cargar_configuracion()
 CARPETA_ENTRADA = r"./ExcelViejos"
 CARPETA_SALIDA = r"./Convertidos"
 
-FORMATO_SALIDA = "xlsx"  # "xlsx" o "csv"
+FORMATO_SALIDA = "csv"  # "xlsx" o "csv"
 
 LIMITE_XLSX = 1_048_576
 MAX_DATOS_XLSX = LIMITE_XLSX - 1  # encabezado ocupa una fila
@@ -71,6 +71,11 @@ def convertir_a_xlsx(archivo):
     fila_encabezado = encontrar_encabezado(rows)
 
     encabezado = rows[fila_encabezado]
+    mapa_columnas = {
+    str(nombre).strip(): indice
+    for indice, nombre in enumerate(encabezado)
+    if str(nombre).strip()
+    }
 
     parte = 1
     filas_actuales = 0
@@ -99,7 +104,8 @@ def convertir_a_xlsx(archivo):
             
             fila = procesar_fila(
                 fila,
-                config
+                config,
+                mapa_columnas
             )
 
             if fila is None:
@@ -155,6 +161,11 @@ def convertir_a_csv(archivo):
         fila_encabezado = encontrar_encabezado(rows)
 
         encabezado = rows[fila_encabezado]
+        mapa_columnas = {
+            str(nombre).strip(): indice
+            for indice, nombre in enumerate(encabezado)
+            if str(nombre).strip()
+        }
 
         writer.writerow(encabezado)
 
@@ -175,7 +186,8 @@ def convertir_a_csv(archivo):
             for fila in rows[inicio:]:
                 fila = procesar_fila(
                     fila,
-                    config
+                    config,
+                    mapa_columnas
                 )
 
                 if fila is None:
