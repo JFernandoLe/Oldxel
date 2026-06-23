@@ -2,6 +2,8 @@
     "formato_salida": "xlsx",
 
     "eliminar_filas_vacias": true,
+    
+    "generar_consolidado_final": true,
 
     "filtros": [
         {

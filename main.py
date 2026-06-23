@@ -1,9 +1,10 @@
 import os
 import csv
+import time
 from pathlib import Path
 
 from python_calamine import CalamineWorkbook
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
 from rules.reglas import procesar_fila
 from config.config_loader import cargar_configuracion
@@ -17,10 +18,10 @@ config = cargar_configuracion()
 CARPETA_ENTRADA = r"./ExcelViejos"
 CARPETA_SALIDA = r"./Convertidos"
 
-FORMATO_SALIDA = "xlsx"  # "xlsx" o "csv"
+FORMATO_SALIDA = config["formato_salida"]
 
 LIMITE_XLSX = 1_048_576
-MAX_DATOS_XLSX = LIMITE_XLSX - 1  # encabezado ocupa una fila
+MAX_DATOS_XLSX = LIMITE_XLSX - 1# encabezado ocupa una fila
 
 # ==================================================
 # UTILIDADES
@@ -55,14 +56,15 @@ def crear_xlsx(nombre_base, parte, encabezado):
 # XLSX
 # ==================================================
 
-estadisticas = {
-    "filas_leidas": 0,
-    "filas_eliminadas": 0,
-    "filas_modificadas": 0,
-    "filas_exportadas": 0
-}
+
 
 def convertir_a_xlsx(archivo):
+    estadisticas = {
+        "filas_leidas": 0,
+        "filas_eliminadas": 0,
+        "filas_modificadas": 0,
+        "filas_exportadas": 0
+    }
 
     wb_calamine = CalamineWorkbook.from_path(str(archivo))
 
@@ -135,6 +137,7 @@ def convertir_a_xlsx(archivo):
             ws_out.append(fila)
             estadisticas["filas_exportadas"] += 1
             filas_actuales += 1
+            
 
     wb_out.save(ruta_salida)
     print("\nResumen:")
@@ -148,14 +151,15 @@ def convertir_a_xlsx(archivo):
 # CSV
 # ==================================================
 
-estadisticas = {
-    "filas_leidas": 0,
-    "filas_eliminadas": 0,
-    "filas_modificadas": 0,
-    "filas_exportadas": 0
-}
+
 
 def convertir_a_csv(archivo):
+    estadisticas = {
+        "filas_leidas": 0,
+        "filas_eliminadas": 0,
+        "filas_modificadas": 0,
+        "filas_exportadas": 0
+    }
 
     wb_calamine = CalamineWorkbook.from_path(str(archivo))
 
@@ -245,8 +249,124 @@ def procesar_archivo(archivo):
         )
 
 
-def main():
+def generar_consolidado():
+    print("\nGenerando consolidado...")
 
+    archivos = sorted(
+        Path(CARPETA_SALIDA).glob("*.xlsx")
+    )
+
+    archivos = [
+        a for a in archivos
+        if not a.name.startswith("Consolidado")
+    ]
+
+    print(
+        f"Archivos encontrados: {len(archivos)}"
+    )
+
+    if not archivos:
+        return
+    
+    ruta_consolidado = (
+        Path(CARPETA_SALIDA)
+        / "Consolidado.xlsx"
+    )
+
+    if ruta_consolidado.exists():
+        ruta_consolidado.unlink()
+
+    wb_final = Workbook(write_only=True)
+
+    hoja_numero = 1
+
+    ws = wb_final.create_sheet(
+        f"Datos_{hoja_numero}"
+    )
+
+    filas_hoja = 1
+
+    encabezado = None
+
+    primer_archivo = archivos[0]
+
+    wb = load_workbook(
+        primer_archivo,
+        read_only=True,
+        data_only=True
+    )
+
+    hoja = wb.active
+
+    for fila in hoja.iter_rows(
+        values_only=True
+    ):
+
+        encabezado = list(fila)
+
+        ws.append(encabezado)
+
+        break
+
+    print("Consolidando archivos...")
+
+    for archivo in archivos:
+        print(
+            f"Procesando: {archivo.name}"
+        )
+
+        wb = load_workbook(
+            archivo,
+            read_only=True,
+            data_only=True
+        )
+
+        hoja = wb.active
+
+        primera_fila = True
+
+        for fila in hoja.iter_rows(
+            values_only=True
+        ):
+
+            if primera_fila:
+
+                primera_fila = False
+                continue
+
+            if filas_hoja >= LIMITE_XLSX:
+
+                hoja_numero += 1
+
+                ws = wb_final.create_sheet(
+                    f"Datos_{hoja_numero}"
+                )
+
+                ws.append(encabezado)
+
+                filas_hoja = 1
+            
+            ws.append(fila)
+            filas_hoja += 1
+
+    wb_final.save(
+    Path(CARPETA_SALIDA)
+    / "Consolidado.xlsx"
+    )
+
+    print(
+    f"Consolidado generado en {hoja_numero} hoja(s)."
+    )
+    print(
+    f"Archivos procesados: {len(archivos)}"
+    )
+
+
+
+
+
+def main():
+    inicio = time.time()
     Path(CARPETA_SALIDA).mkdir(
         parents=True,
         exist_ok=True
@@ -269,8 +389,14 @@ def main():
                 f"\nERROR en {archivo.name}"
             )
             print(e)
-
+    if config["generar_consolidado_final"]:
+        generar_consolidado()
     print("\nProceso terminado.")
+    fin = time.time()
+
+    print(
+        f"\nTiempo total: {fin - inicio:.2f} segundos"
+    )
 
 
 if __name__ == "__main__":
